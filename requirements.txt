@@ -1,0 +1,5 @@
+flask
+google-adk
+google-genai
+numpy
+sqlite3
