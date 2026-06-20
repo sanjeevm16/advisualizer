@@ -4,37 +4,37 @@ This document describes the high-level architecture, component layers, multi-age
 
 ```mermaid
 graph TB
-    subgraph Frontend Layer (Web UI)
-        UI[index.html / CSS / JS]
-        Tabs[Tabs: Creative Gallery & Agent Workspace]
-        Upload[Drag-and-Drop Image Uploader]
-        Audio[Web Speech API: STT / TTS]
+    subgraph frontend ["Frontend Layer (Web UI)"]
+        UI["index.html / CSS / JS"]
+        Tabs["Tabs: Creative Gallery & Agent Workspace"]
+        Upload["Drag-and-Drop Image Uploader"]
+        Audio["Web Speech API: STT / TTS"]
     end
 
-    subgraph Server Layer (Flask / Python)
-        API[app.py / Endpoints: /chat, /upload, /generate_agent_image, /session_state, /assets]
-        PIL[PIL / Pillow: Masking Pipeline]
-        DB[(SQLite: sessions.db)]
+    subgraph server ["Server Layer (Flask / Python)"]
+        API["app.py / Endpoints: /chat, /upload, /generate_agent_image, /session_state, /assets"]
+        PIL["PIL / Pillow: Masking Pipeline"]
+        DB[("SQLite: sessions.db")]
     end
 
-    subgraph Orchestration Layer (ADK / Gemini)
-        Run[ADK Runner]
-        Orch[Orchestrator Agent]
-        TA[Trend Analyst Agent]
-        PC[Product Copier Agent]
-        SC[Scene Compositor Agent]
-        AB[A/B Variant Gen Agent]
+    subgraph orchestration ["Orchestration Layer (ADK / Gemini)"]
+        Run["ADK Runner"]
+        Orch["Orchestrator Agent"]
+        TA["Trend Analyst Agent"]
+        PC["Product Copier Agent"]
+        SC["Scene Compositor Agent"]
+        AB["A/B Variant Gen Agent"]
     end
 
-    subgraph Google Cloud Vertex AI
-        Embed[text-embedding-004]
-        Imagen[imagen-3.0-generate-002]
-        Gemini[gemini-2.5-flash]
+    subgraph vertex ["Google Cloud Vertex AI"]
+        Embed["text-embedding-004"]
+        Imagen["imagen-3.0-generate-002"]
+        Gemini["gemini-2.5-flash"]
     end
 
-    subgraph Memory Layer
-        VM[VectorMemoryService]
-        PKL[(vector_memories.pkl)]
+    subgraph memory ["Memory Layer"]
+        VM["VectorMemoryService"]
+        PKL[("vector_memories.pkl")]
     end
 
     UI <-->|HTTP POST /chat| API
@@ -120,8 +120,8 @@ Managed in [memory.py](file:///home/devstar9515/way-back-home/advisualizer/memor
 sequenceDiagram
     autonumber
     actor User as User Browser
-    participant Flask as Flask Server (app.py)
-    participant PIL as Pillow Pipeline
+    participant Flask as "Flask Server (app.py)"
+    participant PIL as "Pillow Pipeline"
     participant Run as ADK Runner
     participant Orch as Orchestrator Agent
     participant TA as Trend Analyst

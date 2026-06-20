@@ -8,7 +8,10 @@ An ecosystem that completely automates product placement, visual marketing campa
 
 1. **Multi-Agent Orchestrated Workflows**:
    * **Orchestrator Agent**: Delegates and coordinates the workflow sequentially:
-     $$\text{Trend Analyst} \rightarrow \text{Product Copier} \rightarrow \text{Scene Compositor} \rightarrow \text{Variant Generator}$$
+     ```mermaid
+     graph LR
+         TA["Trend Analyst"] --> PC["Product Copier"] --> SC["Scene Compositor"] --> VG["Variant Generator"]
+     ```
    * **Trend Analyst**: Identifies converting visual styles based on simulated web/social category indicators.
    * **Product Copier**: Analyzes uploaded product images and implements background matting/masking strategies.
    * **Scene Compositor**: Formulates detailed backdrop generation prompts.
