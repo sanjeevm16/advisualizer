@@ -311,3 +311,172 @@ header h1 {
     70% { box-shadow: 0 0 0 10px rgba(34, 211, 238, 0); }
     100% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
 }
+
+/* Upload zone styles */
+.upload-zone {
+    border: 2px dashed rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.2s ease-in-out;
+}
+
+.upload-zone:hover {
+    border-color: var(--accent-purple);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.upload-icon {
+    color: var(--accent-purple);
+}
+
+.selected-product-bar {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+}
+
+/* Custom Tabs styles */
+.custom-tabs.nav-tabs {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.custom-tabs .nav-link {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-weight: 600;
+    padding: 10px 16px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.custom-tabs .nav-link:hover {
+    color: var(--text-primary);
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.custom-tabs .nav-link.active {
+    color: var(--accent-purple);
+    border-bottom-color: var(--accent-purple);
+    background: transparent;
+}
+
+/* Agent Strategy Card styles */
+.agent-strategy-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 18px;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.agent-strategy-card:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.agent-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.badge-ta { background: rgba(244, 114, 182, 0.15); color: var(--agent-ta); border: 1px solid rgba(244, 114, 182, 0.2); }
+.badge-pc { background: rgba(251, 146, 60, 0.15); color: var(--agent-pc); border: 1px solid rgba(251, 146, 60, 0.2); }
+.badge-sc { background: rgba(34, 211, 238, 0.15); color: var(--agent-sc); border: 1px solid rgba(34, 211, 238, 0.2); }
+.badge-ab { background: rgba(167, 139, 250, 0.15); color: var(--agent-ab); border: 1px solid rgba(167, 139, 250, 0.2); }
+
+.strategy-prompt-box {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.strategy-image-container {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.strategy-image {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    aspect-ratio: 1;
+}
+
+.strategy-placeholder {
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.btn-generate-strategy {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: none;
+    color: white;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.15);
+    transition: all 0.2s;
+}
+
+.btn-generate-strategy:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(16, 185, 129, 0.3);
+}
+
+.btn-generate-strategy:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-secondary);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+/* Uploaded product thumbnail */
+.uploaded-product-thumbnail {
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.uploaded-product-thumbnail:hover {
+    transform: scale(1.08);
+    border-color: var(--accent-purple);
+}
+
+.uploaded-product-thumbnail.selected {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.4);
+}
