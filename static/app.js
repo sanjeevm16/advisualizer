@@ -317,7 +317,7 @@ function renderAgentWorkspace(agentSteps) {
                                     </div>
                                 `}
                                 <div>
-                                    <button class="btn-generate-strategy mt-2" onclick="generateAgentImage('${agent.key}', \`${prompt.replace(/'/g, "\\'")}\`, ${idx}, this)">
+                                    <button class="btn-generate-strategy mt-2 btn-action-generate" data-agent="${agent.key}" data-prompt="${encodeURIComponent(prompt)}" data-variant="${idx}">
                                         ${imageUrl ? 'Regenerate Image' : 'Generate Image'}
                                     </button>
                                 </div>
@@ -368,7 +368,7 @@ function renderAgentWorkspace(agentSteps) {
                     `}
                     
                     ${(showBtn && promptText) ? `
-                        <button class="btn-generate-strategy mt-2" onclick="generateAgentImage('${agent.key}', \`${promptText.replace(/'/g, "\\'")}\`, null, this)">
+                        <button class="btn-generate-strategy mt-2 btn-action-generate" data-agent="${agent.key}" data-prompt="${encodeURIComponent(promptText)}" data-variant="null">
                             ${btnLabel}
                         </button>
                     ` : ''}
@@ -387,6 +387,17 @@ function renderAgentWorkspace(agentSteps) {
         `;
         
         container.appendChild(card);
+    });
+
+    // Safely bind event listeners to the buttons to bypass inline HTML quote escaping limits
+    container.querySelectorAll('.btn-action-generate').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const agentName = this.getAttribute('data-agent');
+            const promptDecoded = decodeURIComponent(this.getAttribute('data-prompt'));
+            const variantIdxStr = this.getAttribute('data-variant');
+            const variantIdx = variantIdxStr !== 'null' ? parseInt(variantIdxStr, 10) : null;
+            generateAgentImage(agentName, promptDecoded, variantIdx, this);
+        });
     });
 }
 

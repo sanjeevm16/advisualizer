@@ -59,6 +59,22 @@ def save_session_data(session_id, data):
     conn.commit()
     conn.close()
 
+def parse_variants_from_text(text: str) -> list:
+    variants = []
+    lines = text.split('\n')
+    for line in lines:
+        line = line.strip()
+        if line.startswith('*') or line.startswith('-') or (line and line[0].isdigit() and len(line) > 1 and (line[1] == '.' or line[1] == ')')):
+            content = line.lstrip('*-0123456789.() \t')
+            content = content.replace('**', '').strip()
+            if content.startswith('"') and content.endswith('"'):
+                content = content[1:-1].strip()
+            elif content.startswith("'") and content.endswith("'"):
+                content = content[1:-1].strip()
+            if content and len(content) > 10:
+                variants.append(content)
+    return variants
+
 def generate_mask_image(input_path, output_path):
     try:
         with Image.open(input_path) as img:
@@ -263,6 +279,14 @@ def chat():
                                 
         if not final_response:
             final_response = "Agents are working on your request..."
+            
+        # Ensure variants prompts list is populated from text strategy if empty
+        if agent_steps.get("ABVariantGenerator") and not agent_steps["ABVariantGenerator"].get("prompts"):
+            strategy_text = agent_steps["ABVariantGenerator"].get("strategy", "")
+            if strategy_text:
+                parsed_prompts = parse_variants_from_text(strategy_text)
+                if parsed_prompts:
+                    agent_steps["ABVariantGenerator"]["prompts"] = parsed_prompts
             
         session_data["agent_steps"] = agent_steps
         save_session_data(session_id, session_data)
