@@ -3,7 +3,17 @@ import json
 from google.genai import Client
 from scenecompositer import generate_backdrop_prompt
 from abvariantgenerator import create_variants
+from global_wrapper import audited_generate_content
+from google import genai
+from google.genai import types
+import time
 
+safety_settings = [
+    types.SafetySetting(
+        category="HARM_CATEGORY_DANGEROUS_CONTENT",
+        threshold="BLOCK_NONE", # Prevent empty None returns
+    ),
+]
 def evaluate_prompt(prompt: str, context: str, client: Client) -> dict:
     """Uses Gemini to evaluate a text-to-image prompt."""
     evaluator_prompt = f"""
@@ -31,12 +41,23 @@ def evaluate_prompt(prompt: str, context: str, client: Client) -> dict:
             contents=evaluator_prompt,
             config={'response_mime_type': 'application/json'}
         )
+       # response = audited_generate_content(client, model="gemini-2.5-flash", contents=evaluator_prompt)
         return json.loads(response.text)
     except Exception as e:
         return {"error": str(e)}
 
 def run_evaluations():
-    client = Client()
+    #client = Client()
+    client = genai.Client(
+        vertexai=True,
+        project="ai-studio-applet-webapp-19ab7",
+        location="us-central1",
+        http_options=types.HttpOptions(
+        headers={
+            "X-Vertex-AI-LLM-Shared-Request-Type": "shared"
+        }
+        )
+)
     
     print("--- Evaluating Scene Compositor Prompts ---")
     
@@ -50,15 +71,16 @@ def run_evaluations():
         print(f"\nTest Case {i+1}:")
         print(f"Generated Prompt: {prompt}")
         evaluation = evaluate_prompt(prompt, "Scene Compositor Backdrop Prompt", client)
-        print(json.dumps(evaluation, indent=2))
-        
+        print(json.dumps(evaluation, indent=2,skipkeys='True'))
+        #time.sleep(2)
         print(f"\n--- Evaluating A/B Variants for Test Case {i+1} ---")
         variants = create_variants(prompt)
         for j, variant in enumerate(variants):
             print(f"  Variant {j+1}: {variant}")
             var_eval = evaluate_prompt(variant, "A/B Marketing Variant", client)
-            print("  Evaluation:")
-            print("  " + json.dumps(var_eval, indent=2).replace('\n', '\n  '))
+            print("  Evaluation:" + json.dumps(var_eval))
+            #print("  " + json.dumps(var_eval, indent=2,skipkeys='True').replace('\n', '\n  '))
+            #time.sleep(2)
 
 if __name__ == "__main__":
     run_evaluations()

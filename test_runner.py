@@ -8,7 +8,7 @@ async def test():
     events = runner.run(
         user_id="test_user",
         session_id="test_session",
-        new_message=t_content("Generate an ad for an electronic gadget")
+        new_message=t_content("You are a photography critic. Generate an ad for A sleek, silver LA 28 Olympics swim costume on a minimalist white background")
     )
     print("Runner started...")
     for event in events:

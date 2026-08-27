@@ -7,8 +7,8 @@ async def test():
     runner = create_runner()
     events = runner.run(
         user_id="test_user",
-        session_id="test_shoe_session",
-        new_message=t_content("You are a photography critic. Generate an ad campaign for Winter Olympic skii sport equipment. A close-up shot of a skier in mid-air with snow spraying, dramatic lighting, and a clear view of the skis.")
+        session_id="test_jewelry_session",
+        new_message=t_content("You are a photography critic. Generate an ad campaign for Indian jewelry.A close-up shot of jewelry on a hi-tech gloss white background. Godlen hour lighting, dramatic lighting, and a clear view is preffered .")
     )
     print("Runner started...")
     for event in events:

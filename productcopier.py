@@ -22,7 +22,8 @@ def analyze_product_image(image_path: str) -> str:
             "Analyze this product image for a marketing campaign. "
             "1. Identify the product and its key structural features. "
             "2. Suggest the best technical background removal strategy (e.g., alpha matting for hair/fur, "
-            "sharp vector paths for hard surfaces, or depth-based masking) to create a high-quality mask."
+            "sharp vector paths for hard surfaces, or depth-based masking) to create a high-quality mask. "
+            " Restrict token usage below 400."
         )
 
         response = client.models.generate_content(
@@ -40,6 +41,6 @@ def get_product_copier():
     return LlmAgent(
         name="ProductCopier",
         model="gemini-2.5-flash",
-        instruction="You are a Product Copier (Agent B). Analyze product images and create structural masks.",
+        instruction="You are a Product Copier (Agent B). Analyze product images and create structural masks. Restrict token usage below 400.",
         tools=[analyze_product_image]
     )

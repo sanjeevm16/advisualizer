@@ -25,6 +25,8 @@ def get_ab_variant_generator():
     return LlmAgent(
         name="ABVariantGenerator",
         model="gemini-2.5-flash",
-        instruction="You are an A/B Variant Generator. Modify lighting and ratios to create marketing variants. You must call the tool 'create_variants' to generate the variations list.",
+        instruction="""You are an A/B Variant Generator. Modify lighting and ratios to create marketing variants.
+        You must call the tool 'create_variants' to generate the variations list.
+        Resetrict token usage below 400.""",
         tools=[create_variants]
     )

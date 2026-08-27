@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from google.adk import Runner
-from google.adk.agents import LlmAgent
+from google.adk.agents import LlmAgent 
+from google.adk.models import LlmResponse
 from google.adk.memory import BaseMemoryService
 from google.adk.memory.base_memory_service import SearchMemoryResponse
 from google.adk.sessions import Session, InMemorySessionService
@@ -17,6 +18,8 @@ from trendanalyst import get_trend_analyst
 from productcopier import get_product_copier
 from scenecompositer import get_scene_compositer
 from abvariantgenerator import get_ab_variant_generator
+from typing import Optional 
+from google.adk.agents.callback_context import CallbackContext
 
 # Model configurations
 EMBEDDING_MODEL = "text-embedding-004"
@@ -45,6 +48,7 @@ class VectorMemoryService(BaseMemoryService):
     async def add_session_to_memory(self, session: Session) -> None:
         """Required abstract method for ADK 2.1.0"""
         # Simple implementation: embed and save the last turn's text
+        print(f" Add session to memory {session.id}")
         if not session.history:
             return
             
@@ -66,6 +70,7 @@ class VectorMemoryService(BaseMemoryService):
 
     async def search_memory(self, app_name: str, user_id: str, query: str) -> SearchMemoryResponse:
         """Required abstract method for ADK 2.1.0"""
+        print(f" {app_name} - {user_id} - Searching memory for query: {query}")
         if not self.memories:
             return SearchMemoryResponse(memories=[])
             
@@ -88,6 +93,85 @@ def search_policies(query: str) -> str:
     Search a knowledge base of compensation policies.
     """
     return "Policy search result for: " + query
+
+def track_token_usage(callback_context: CallbackContext, llm_response: LlmResponse) ->Optional[LlmResponse]:
+    """
+    Hook that fires automatically after every LLM call inside the agent loop.
+    """
+    agent_name = callback_context.agent_name
+    print(f"[Callback] After model call for agent: {agent_name}")
+    try:
+        # 1. Primary: Check 'usage_metadata' attribute (Standard for Gemini ADK)
+        usage = getattr(llm_response, 'usage_metadata', None)
+
+        # 2. Secondary: Check 'usage' attribute (Common in LiteLLM backends)
+        if not usage:
+            usage = getattr(llm_response, 'usage', None)
+
+        # 3. Fallback: Search inside metadata if it exists
+        metadata = getattr(llm_response, 'metadata', {}) or {}
+        model_response = metadata.get("model_response") if isinstance(metadata, dict) else None
+        
+        if not usage and model_response:
+            if hasattr(model_response, 'usage_metadata'):
+                usage = model_response.usage_metadata
+            elif isinstance(model_response, dict):
+                usage = model_response.get("usage_metadata") or model_response.get("usage")
+        
+        if not usage:
+            usage = metadata.get("usage_metadata") or metadata.get("usage")
+
+        prompt_tokens = 0
+        completion_tokens = 0
+        total_tokens = 0
+
+        if usage:
+            if hasattr(usage, 'prompt_token_count'): # SDK Object style (Gemini)
+                prompt_tokens = getattr(usage, 'prompt_token_count', 0)
+                completion_tokens = getattr(usage, 'candidates_token_count', 0)
+                total_tokens = getattr(usage, 'total_token_count', 0)
+            elif isinstance(usage, dict): # Dictionary style fallback
+                prompt_tokens = usage.get("prompt_token_count") or usage.get("prompt_tokens") or 0
+                completion_tokens = usage.get("candidates_token_count") or usage.get("completion_tokens") or 0
+                total_tokens = usage.get("total_token_count") or usage.get("total_tokens") or 0
+        
+        # Alternative Way: Manual Estimation if telemetry is missing
+        if total_tokens == 0:
+            # Count tokens in the generated response parts
+            if llm_response.content and llm_response.content.parts:
+                for part in llm_response.content.parts:
+                    if part.text:
+                        # Gemini heuristic: ~4 characters per token
+                        completion_tokens += len(part.text) // 4
+            
+            # Note: Prompt tokens cannot be easily calculated here without the original prompt.
+            # You can call client.models.count_tokens() if you have the prompt string.
+            total_tokens = prompt_tokens + completion_tokens
+            if total_tokens > 0:
+                print(f"[Callback] Usage estimated via heuristic (Metadata was missing)")
+
+
+        if total_tokens > 0:
+            # Pricing for Gemini 2.5 Flash tier (Approximated)
+            # Input: $0.075 per 1 million tokens | Output: $0.30 per 1 million tokens
+            cost_input = (prompt_tokens / 1_000_000) * 0.075
+            cost_output = (completion_tokens / 1_000_000) * 0.30
+            total_cost = cost_input + cost_output
+
+            print(f"\n--- [LlmAgent Token Hook] ---")
+            print(f"Agent: {agent_name}")
+            print(f"Prompt Input: {prompt_tokens} tokens (${cost_input:.6f})")
+            print(f"Completion Output: {completion_tokens} tokens (${cost_output:.6f})")
+            print(f"Total Call Tokens: {total_tokens} tokens")
+            print(f"Estimated Cost: ${total_cost:.6f}")
+            print(f"-----------------------------\n")
+        else:
+            print(f"[Callback] No usage telemetry found for agent: {agent_name}")
+
+    except Exception as e:
+        print(f"Error reading usage telemetry: {e}")
+        
+    return llm_response
 
 def create_runner() -> Runner:
     """
@@ -113,10 +197,12 @@ def create_runner() -> Runner:
         3. Scene Compositor: Generates backdrop prompts based on trends.
         4. A/B Variant Generator: Creates multiple variations for testing.
         
-        Always follow the workflow: Trend Analysis -> Product Analysis -> Scene Composition -> Variant Generation.
+        Always follow the workflow: Trend Analyst -> Product Copier -> Scene Compositor -> A/B Variant Generator.
+        Resetrict token usage below 400.
         """,
         sub_agents=[trend_agent, product_agent, scene_agent, ab_agent],
-        tools=[search_policies]
+        tools=[search_policies], 
+        after_model_callback=track_token_usage # Binds the token hook
     )
     
     return Runner(

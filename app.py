@@ -9,6 +9,7 @@ from PIL import Image, ImageOps, ImageFilter
 from google.genai import Client
 from memory import create_runner
 
+
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "super-secret-key")
 
@@ -120,6 +121,38 @@ def generate_image_with_imagen(prompt: str) -> str:
 @app.route('/')
 def index():
     return render_template('index.html')
+
+# New utility to compute faithfulness using Gemini (native)
+def compute_faithfulness(reference: str, answer: str) -> float:
+    """Return a faithfulness score (0‑1) using Gemini.
+    The function asks Gemini to compare *answer* with the *reference* and to
+    respond with a numeric score. It parses the numeric value from the model's
+    reply. If parsing fails, ``-1.0`` is returned.
+    """
+    try:
+        # Build a concise prompt for Gemini
+        prompt = (
+            f"You are given a reference answer and a model‑generated answer.\n"
+            f"Reference: '''{reference}'''\n"
+            f"Answer: '''{answer}'''\n"
+            f"Rate the faithfulness of the answer to the reference on a scale of 0 to 1, where 1 means completely faithful and 0 means not faithful at all. "
+            f"Respond ONLY with the numeric score."
+        )
+        # Use the existing genai client (Gemini flash model)
+        response = genai_client.models.generate_content(
+            model='gemini-2.5-flash',
+            prompt=prompt,
+            config={"temperature": 0.0}
+        )
+        # Extract text from response
+        text = response.candidates[0].content.parts[0].text.strip()
+        # Try to parse a float from the response
+        score = float(text)
+        # Clamp between 0 and 1
+        return max(0.0, min(1.0, score))
+    except Exception as e:
+        print(f"Faithfulness evaluation error: {e}")
+        return -1.0
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -297,6 +330,19 @@ def chat():
         })
     except Exception as e:
         return jsonify({"response": f"Error: {str(e)}"}), 500
+
+# New endpoint to evaluate faithfulness of a generated answer using Gemini
+@app.route('/evaluate_faithfulness', methods=['POST'])
+def evaluate_faithfulness_endpoint():
+    payload = request.get_json()
+    reference = payload.get('reference', '')
+    answer = payload.get('answer', '')
+    if not reference or not answer:
+        return jsonify({"error": "Both 'reference' and 'answer' must be provided."}), 400
+    score = compute_faithfulness(reference, answer)
+    if score < 0:
+        return jsonify({"error": "Faithfulness evaluation failed."}), 500
+    return jsonify({"faithfulness": score})
 
 @app.route('/generate_agent_image', methods=['POST'])
 def generate_agent_image():
